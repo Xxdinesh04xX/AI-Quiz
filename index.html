@@ -1,0 +1,153 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+  <title>AI Quiz – Causal Funnel</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+  <div id="app" class="app">
+    <!-- Start Screen -->
+    <section id="start-screen" class="screen active fade-in">
+      <div class="brand">
+        <div class="logo">CF</div>
+        <h1>Causal Funnel – AI Quiz</h1>
+        <p class="tagline">Test your Knowledge</p>
+      </div>
+      <form id="start-form" class="start-form">
+        <label for="email">Enter your email to begin</label>
+        <input type="email" id="email" name="email" placeholder="you@company.com" required pattern="^[^\s@]+@[^\s@]+\.[^\s@]{2,}$" title="Enter a valid email like name@example.com" />
+        <button type="submit" class="btn primary">Start Quiz</button>
+      </form>
+    </section>
+
+    <!-- Dashboard Screen -->
+    <section id="dashboard-screen" class="screen">
+      <div class="quiz-header" style="margin-bottom:16px">
+        <div class="left"><div class="quiz-title">Dashboard</div></div>
+        <div class="right">
+          <div class="theme-row">
+            <button class="btn ghost sm" data-theme="aurora">Aurora</button>
+            <button class="btn ghost sm" data-theme="ocean">Ocean</button>
+            <button class="btn ghost sm" data-theme="sunset">Sunset</button>
+          </div>
+        </div>
+      </div>
+      <div class="dashboard">
+        <h2>Welcome, <span id="dash-email"></span></h2>
+        <div class="dash-actions">
+          <button id="btn-new-test" class="btn primary">New Test</button>
+          <button id="btn-view-tests" class="btn ghost">View Past Tests</button>
+          <button id="btn-logout" class="btn danger">Logout</button>
+        </div>
+        <div id="past-tests-container" class="past hidden">
+          <h3>Past Tests</h3>
+          <div id="past-empty" class="past-empty hidden">Please attempt a test to view past tests.</div>
+          <div id="past-tests" class="past-list"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Quiz Screen -->
+    <section id="quiz-screen" class="screen">
+      <header class="quiz-header">
+        <div class="left">
+          <button id="toggle-overview" class="icon-btn" title="Toggle overview">☰</button>
+          <div class="quiz-title">AI Quiz</div>
+        </div>
+        <div class="right">
+          <div id="timer" class="timer">30:00</div>
+          <div id="clues-left" class="clues">Clues: 3</div>
+          <div id="warnings" class="warnings">Warnings: 0/4</div>
+          <button id="submit-quiz" class="btn danger hidden">Submit</button>
+        </div>
+      </header>
+      <div class="quiz-layout">
+        <aside id="overview" class="overview">
+          <h3>Overview</h3>
+          <div id="question-grid" class="question-grid"></div>
+          <div class="legend">
+            <span class="badge visited">Visited</span>
+            <span class="badge attempted">Attempted</span>
+          </div>
+          <!-- Quick Panel (inside sidebar) -->
+          <div id="quick-panel" class="quick-panel hidden">
+            <button id="close-quick-panel" class="icon-btn close">✕</button>
+            <h3>Quick Panel</h3>
+            <div class="stats">
+              <div class="chip">Visited: <strong id="qp-visited">0</strong></div>
+              <div class="chip">Attempted: <strong id="qp-attempted">0</strong></div>
+              <div class="chip">Remaining: <strong id="qp-remaining">0</strong></div>
+              <div class="chip">Time left: <strong id="qp-time">30:00</strong></div>
+            </div>
+            <div class="theme">
+              <div class="small">Theme</div>
+              <div class="theme-row">
+                <button class="btn ghost sm" data-theme="aurora">Aurora</button>
+                <button class="btn ghost sm" data-theme="ocean">Ocean</button>
+                <button class="btn ghost sm" data-theme="sunset">Sunset</button>
+              </div>
+            </div>
+            <div class="tip">💡 <em id="qp-quote">Stay focused and trust your first instinct.</em></div>
+          </div>
+        </aside>
+        <main class="question-area">
+          <div id="question-meta" class="question-meta"></div>
+          <div id="question-text" class="question-text"></div>
+          <ul id="choices" class="choices"></ul>
+          <div class="actions">
+            <button id="prev" class="btn">← Prev</button>
+            <button id="ask-ai" class="btn ghost">Ask AI for a clue</button>
+            <button id="next" class="btn">Next →</button>
+            <button id="bottom-submit" class="btn danger hidden">Submit Quiz</button>
+          </div>
+        </main>
+      </div>
+    </section>
+
+    <!-- Report Screen -->
+    <section id="report-screen" class="screen">
+      <div class="report-head">
+        <div class="report-title"><h2>Quiz Report</h2><span class="report-badge">Live Review</span></div>
+        <div class="score" id="score"></div>
+        <p id="email-display" class="email-display"></p>
+        <p id="report-note" class="note"></p>
+      </div>
+      <p id="performance-summary" class="performance"></p>
+      <div id="report-list" class="report-list"></div>
+      <div class="report-actions">
+        <button id="back-dashboard" class="btn ghost">Back to Dashboard</button>
+        <button id="download-report" class="btn primary">Download Report</button>
+        <button id="retake" class="btn">Retake</button>
+      </div>
+    </section>
+
+    <!-- AI Modal -->
+    <div id="ai-modal" class="modal hidden">
+      <div class="modal-content pop">
+        <button id="close-modal" class="icon-btn close">✕</button>
+        <h3>AI Assistant</h3>
+        <p class="small">Choose one of the available clues. You have <span id="clues-remaining">3</span> total clues left.</p>
+        <div class="clue-options">
+          <button id="clue-5050" class="btn clue">50 / 50</button>
+          <button id="clue-first" class="btn clue">First Letter Hint</button>
+          <button id="clue-guess" class="btn clue">Smart Guess</button>
+          <button id="clue-keywords" class="btn clue">Context Keywords</button>
+        </div>
+        <div id="ai-output" class="ai-output"></div>
+      </div>
+    </div>
+  </div>
+  <div class="footer-note">Questions fetched live from Open Trivia DB. Your email is used only for this session.</div>
+  <footer class="site-footer">© 2025 Causal Funnel. All rights reserved.<div class="creator">Created by A Dinesh Reddy</div></footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
+
