@@ -205,13 +205,18 @@ async function fetchQuestions(){
 
 function startTimer(){
   const timerEl = qs('#timer');
+  if(!timerEl) return;
+  
   const endAt = state.startedAt + state.durationMs;
+  
   function tick(){
     const now = Date.now();
     const remaining = Math.max(0, endAt - now);
     const m = Math.floor(remaining/60000).toString().padStart(2,'0');
     const s = Math.floor((remaining%60000)/1000).toString().padStart(2,'0');
     const timeText = `${m}:${s}`;
+    
+    // Update main timer
     timerEl.textContent = timeText;
     
     // Update quick panel timer as well
@@ -225,6 +230,8 @@ function startTimer(){
       submitQuiz('Time up');
     }
   }
+  
+  // Initial tick to set the timer immediately
   tick();
   state.timerInterval = setInterval(tick, 1000);
 }
@@ -595,13 +602,27 @@ function resetApp(){
   state.questions = [];
   state.current = 0;
   state.startedAt = null;
-  clearInterval(state.timerInterval);
-  state.timerInterval = null;
+  
+  // Clear timer properly
+  if(state.timerInterval) {
+    clearInterval(state.timerInterval);
+    state.timerInterval = null;
+  }
+  
+  // Reset timer display
+  const timerEl = qs('#timer');
+  if(timerEl) timerEl.textContent = '30:00';
+  
+  const qpTimer = qs('#qp-time');
+  if(qpTimer) qpTimer.textContent = '30:00';
+  
   state.cluesLeft = 3;
   state.usedClues = [];
   state.usedClueTypes = {};
   state.warnings = 0;
   state.currentStartedAt = null;
+  state.perQuestionTimeMs = [];
+  
   qs('#clues-left').textContent = `Clues: ${state.cluesLeft}`;
   qs('#clues-remaining').textContent = state.cluesLeft;
   if(typeof updateClueButtons === 'function') updateClueButtons();
@@ -657,8 +678,27 @@ function wire(){
 
   // Dashboard actions
   qs('#btn-new-test').addEventListener('click', async ()=>{
+    // Clear any existing timer first
+    if(state.timerInterval) {
+      clearInterval(state.timerInterval);
+      state.timerInterval = null;
+    }
+    
+    // Reset all state for new test
+    state.questions = [];
+    state.current = 0;
+    state.startedAt = null;
+    state.cluesLeft = 3;
+    state.usedClues = [];
+    state.usedClueTypes = {};
+    state.warnings = 0;
+    state.currentStartedAt = null;
+    state.perQuestionTimeMs = [];
+    
     await fetchQuestions();
     if(state.questions.length===0){ alert('Failed to load questions. Please try again.'); return; }
+    
+    // Set fresh start time
     state.startedAt = Date.now();
     showScreen('quiz-screen');
     renderOverview();
@@ -738,6 +778,11 @@ function wire(){
 
   // Retake -> go to dashboard
   qs('#retake').addEventListener('click', ()=>{
+    // Clear timer first
+    if(state.timerInterval) {
+      clearInterval(state.timerInterval);
+      state.timerInterval = null;
+    }
     resetApp();
     showScreen('dashboard-screen');
   });
@@ -763,10 +808,18 @@ function updateQuickPanel(){
   qs('#qp-attempted').textContent = attempted;
   qs('#qp-remaining').textContent = remaining;
   
-  // Fix timer in overview panel - get current timer value
-  const timerEl = qs('#timer');
-  if(timerEl) {
-    qs('#qp-time').textContent = timerEl.textContent;
+  // Fix timer in overview panel - calculate current time properly
+  if(state.startedAt && state.timerInterval) {
+    const now = Date.now();
+    const endAt = state.startedAt + state.durationMs;
+    const remaining = Math.max(0, endAt - now);
+    const m = Math.floor(remaining/60000).toString().padStart(2,'0');
+    const s = Math.floor((remaining%60000)/1000).toString().padStart(2,'0');
+    const timeText = `${m}:${s}`;
+    qs('#qp-time').textContent = timeText;
+  } else {
+    // If timer hasn't started, show initial time
+    qs('#qp-time').textContent = '30:00';
   }
 }
 
