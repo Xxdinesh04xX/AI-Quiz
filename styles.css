@@ -18,6 +18,7 @@ body{
   min-height:100vh;
   position:relative;
   padding-bottom:0;
+  overflow-x: hidden;
 }
 .app{
   min-height:100vh;
@@ -35,12 +36,15 @@ body{
 /* Make start and dashboard pages bigger */
 #start-screen, #dashboard-screen {
   max-width: 1200px;
+  width: 100%;
 }
 .dashboard{
   background:rgba(255,255,255,.03);
   border:1px solid rgba(255,255,255,.08);
   border-radius:12px;
   padding:16px;
+  width: 100%;
+  box-sizing: border-box;
 }
 .dash-actions{
   display:flex;
@@ -152,6 +156,7 @@ body{
   gap:8px;
   max-width:720px;
   width:100%;
+  overflow: hidden;
 }
 .past-item{
   display:flex;
@@ -673,5 +678,25 @@ body{
     margin-top:20px;
     padding:8px;
     justify-content:center;
+  }
+  
+  /* Mobile overflow fixes */
+  .dashboard {
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .dash-actions {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  h2 {
+    word-wrap: break-word;
+    overflow-wrap: break-word;
+  }
+  #dash-email {
+    word-break: break-all;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 }
